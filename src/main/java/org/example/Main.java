@@ -12,51 +12,45 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class Main {
+    public static final BlockingQueue<Message> sendQueue = new LinkedBlockingQueue<>();
+
     static ObjectOutputStream out;
-    private static ObjectInputStream in;
+     static ObjectInputStream in;
     public static StartMenu doRun;
+     static boolean baxusa = false;
+
     public static void main(String[] args) {
         doRun = new StartMenu();
-        SwingUtilities.invokeLater(doRun);
-
+        doRun.run();
         new Thread(() -> {
-            try (Socket socket = new Socket("localhost", 8080);
-                 BufferedReader console = new BufferedReader(new InputStreamReader(System.in))) {
-
-                out = new ObjectOutputStream(socket.getOutputStream());
-                in = new ObjectInputStream(socket.getInputStream());
-
-                System.out.println("Connected. Type messages:");
+            try (Socket sock = new Socket("localhost", 8080);
+                 ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+                 ObjectInputStream  ois = new ObjectInputStream(sock.getInputStream())) {
 
                 while (true) {
-                    System.out.print("> ");
-                    String input = console.readLine();
-                    if (input == null || input.equalsIgnoreCase("exit")) break;
+                    Message msg = sendQueue.take();
+                    oos.writeObject(msg);
+                    oos.flush();
 
-                    List<String> str = new ArrayList<>();
-                    str.add("Client");
-                    str.add("Client");
+                    Object reply = ois.readObject();
 
-                    SquareDto[][] object = (SquareDto[][]) sendObject(new Message("temp",str));
-                    doRun.gameWindow.view.board = object;
-
-                    for (int i = 0; i < 8; i++) {
-                        for (int j = 0; j < 8; j++) {
-                            SquareDto squareDto = object[i][j];
-                            if(squareDto!= null)
-                                System.out.print(squareDto.getPiece() + " ");
-                            else System.out.print("  ");
-                        }
-                        System.out.println();
-                    }
-
+                    // update GUI
+                    SwingUtilities.invokeLater(() -> {
+                        // assume reply is SquareDto[][]
+                        doRun.gameWindow.view.board = (SquareDto[][]) reply;
+                        doRun.gameWindow.view.repaint();
+                    });
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
+
+
     }
 
     public static Object sendObject(Object obj) {

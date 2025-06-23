@@ -8,17 +8,13 @@ import java.awt.Component;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.util.List;
 
 import javax.imageio.ImageIO;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 
 public class StartMenu implements Runnable {
     public GameWindow gameWindow;
@@ -139,12 +135,30 @@ public class StartMenu implements Runnable {
                 int hh = Integer.parseInt((String) hours.getSelectedItem());
                 int mm = Integer.parseInt((String) minutes.getSelectedItem());
                 int ss = Integer.parseInt((String) seconds.getSelectedItem());
-                
-                gameWindow = new GameWindow(bn, wn, hh, mm, ss,null);
-                Object hello = Main.sendObject(new Message("startGame",null));
+                gameWindow = new GameWindow(bn, wn, hh, mm, ss, null);
 
-                gameWindow.view.board = (SquareDto[][]) hello;
+                // 2) start the networking thread
+                new Thread(() -> {
+                    try (Socket socket = new Socket("localhost", 8080)) {
+                         Main.out = new ObjectOutputStream(socket.getOutputStream());
+                         Main.in = new ObjectInputStream(socket.getInputStream());
 
+                        while (true) {
+                            SquareDto[][] board = (SquareDto[][]) Main.sendObject(
+                                    new Message("temp", List.of("Client","Client"))
+                            );
+                            // must update Swing on the EDT:
+                            SwingUtilities.invokeLater(() -> {
+                                gameWindow.view.board = board;
+                                gameWindow.view.repaint();
+                            });
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }).start();
+
+                // 3) close the menu
                 startWindow.dispose();
             }
           });

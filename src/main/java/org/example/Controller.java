@@ -18,18 +18,14 @@ public class Controller implements MouseListener, KeyListener, MouseMotionListen
         System.out.println(e.getX() + " " + e.getY());
 
         SquareDto squareDto = (SquareDto) view.getComponentAt(new Point(e.getX(), e.getY()));
-        Main.sendObject(new Message("mousePress", squareDto));
+        Main.sendQueue.offer(new Message("mousePress", squareDto));
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
         System.out.println(e.getX() + " " + e.getY());
         SquareDto squareDto = (SquareDto) view.getComponentAt(new Point(e.getX(), e.getY()));
-
-        Main.sendObject(new Message("mouseRelease", squareDto));
-
-
-//        board.reactToMouseReleased(e);
+        Main.sendQueue.offer(new Message("mouseRelease", squareDto));
     }
 
     @Override
