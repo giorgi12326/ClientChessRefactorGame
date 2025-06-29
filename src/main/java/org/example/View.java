@@ -5,10 +5,12 @@ import org.example.dtos.SquareDto;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 
 public class View extends JPanel {
+    private final GameWindow gameWindow;
     SquareDto[][] board = new SquareDto[8][8];
     public Controller controller;
 
@@ -24,8 +26,17 @@ public class View extends JPanel {
     public static final String RESOURCES_WQUEEN_PNG = "/wqueen.png";
     static final String RESOURCES_WPAWN_PNG = "/wpawn.png";
     private static final String RESOURCES_BPAWN_PNG = "/bpawn.png";
+    Image img;
 
-    public View(){
+    public View(GameWindow gameWindow){
+        img= null;
+        try {
+            img = ImageIO.read(getClass().getResource(RESOURCES_BPAWN_PNG));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        this.gameWindow = gameWindow;
         this.setPreferredSize(new Dimension(400, 400));
         this.setMaximumSize(new Dimension(400, 400));
         this.setMinimumSize(this.getPreferredSize());
@@ -39,7 +50,7 @@ public class View extends JPanel {
         }
         this.add(board[0][0]);
 
-        controller = new Controller(this);
+        controller = new Controller(this,gameWindow);
 
         addMouseMotionListener(controller);
         addMouseListener(controller);
@@ -92,7 +103,7 @@ public class View extends JPanel {
 
                         img = ImageIO.read(getClass().getResource(pieceImage));
                     } catch (IOException e) {
-                        System.out.println("baba");
+                        System.out.println("NO IMAGE FOUND");
                         throw new RuntimeException(e);
                     }
                     g.drawImage(img, px, py, tileSize, tileSize, null);
@@ -100,14 +111,13 @@ public class View extends JPanel {
             }
         }
 
-//        if (board.getCurrPiece() != null) {
-//            Piece curr = board.getCurrPiece();
-//            if ((curr.getColor() == 1 && board.getTurn()) ||
-//                    (curr.getColor() == 0 && !board.getTurn())) {
-//                Image img = curr.getImage();
-//                g.drawImage(img, board.currX, board.currY, tileSize, tileSize, null);
-//            }
-//        }
+        if (gameWindow.currPiece != '\u0000') {
+            char curr = gameWindow.currPiece;
+
+
+            g.drawImage(img, gameWindow.currX, gameWindow.currY, tileSize, tileSize, null);
+
+        }
 
 
     }

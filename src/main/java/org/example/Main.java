@@ -21,34 +21,12 @@ public class Main {
     static ObjectOutputStream out;
      static ObjectInputStream in;
     public static StartMenu doRun;
-     static boolean baxusa = false;
 
     public static void main(String[] args) {
         doRun = new StartMenu();
         doRun.run();
-        new Thread(() -> {
-            try (Socket sock = new Socket("localhost", 8080);
-                 ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
-                 ObjectInputStream  ois = new ObjectInputStream(sock.getInputStream())) {
 
-                while (true) {
-                    Message msg = sendQueue.take();
-                    oos.writeObject(msg);
-                    oos.flush();
 
-                    Object reply = ois.readObject();
-
-                    // update GUI
-                    SwingUtilities.invokeLater(() -> {
-                        // assume reply is SquareDto[][]
-                        doRun.gameWindow.view.board = (SquareDto[][]) reply;
-                        doRun.gameWindow.view.repaint();
-                    });
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
 
 
     }

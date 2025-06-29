@@ -11,7 +11,7 @@ import javax.swing.*;
 
 
 public class GameWindow {
-    private JFrame gameWindow;
+    public JFrame gameWindow;
     
     public Clock blackClock;
     public Clock whiteClock;
@@ -19,7 +19,10 @@ public class GameWindow {
     private Timer timer;
     boolean turn = false;
     View view;
-    
+
+    public char currPiece;
+    public int currX;
+    public int currY;
 
     public GameWindow(String blackName, String whiteName, int hh,
             int mm, int ss, String PGN) {
@@ -29,7 +32,7 @@ public class GameWindow {
         
         gameWindow = new JFrame("Chess");
 
-        view = new View();
+        view = new View(this);
 
         try {
             Image whiteImg = ImageIO.read(getClass().getResource("/wp.png"));

@@ -16,6 +16,8 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
+import static org.example.Main.sendQueue;
+
 public class StartMenu implements Runnable {
     public GameWindow gameWindow;
 
@@ -46,9 +48,7 @@ public class StartMenu implements Runnable {
         } catch (Exception e) {
             System.out.println("Required game file bp.png missing");
         }
-        
-        
-        
+
         final JTextField blackInput = new JTextField("Black", 10);
         blackPanel.add(blackInput);
         
@@ -127,9 +127,9 @@ public class StartMenu implements Runnable {
           });
         
         final JButton start = new JButton("Start");
-        
         start.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+
                 String bn = blackInput.getText();
                 String wn = whiteInput.getText();
                 int hh = Integer.parseInt((String) hours.getSelectedItem());
@@ -137,31 +137,31 @@ public class StartMenu implements Runnable {
                 int ss = Integer.parseInt((String) seconds.getSelectedItem());
                 gameWindow = new GameWindow(bn, wn, hh, mm, ss, null);
 
-                // 2) start the networking thread
                 new Thread(() -> {
-                    try (Socket socket = new Socket("localhost", 8080)) {
-                         Main.out = new ObjectOutputStream(socket.getOutputStream());
-                         Main.in = new ObjectInputStream(socket.getInputStream());
+                    try (Socket sock = new Socket("localhost", 8080);
+                         ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+                         ObjectInputStream ois = new ObjectInputStream(sock.getInputStream())) {
 
                         while (true) {
-                            SquareDto[][] board = (SquareDto[][]) Main.sendObject(
-                                    new Message("temp", List.of("Client","Client"))
-                            );
-                            // must update Swing on the EDT:
+                            Object reply = ois.readObject();
                             SwingUtilities.invokeLater(() -> {
-                                gameWindow.view.board = board;
+                                gameWindow.view.board = (SquareDto[][]) reply;
                                 gameWindow.view.repaint();
                             });
+
+                            Message msg = sendQueue.take();
+                            oos.writeObject(msg);
+                            oos.flush();
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
                 }).start();
 
-                // 3) close the menu
                 startWindow.dispose();
             }
-          });
+        });
+
         final JButton pgnParser = new JButton("pgnParser");
         pgnParser.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

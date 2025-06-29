@@ -9,7 +9,10 @@ import java.awt.event.*;
 
 public class Controller implements MouseListener, KeyListener, MouseMotionListener {
     View view;
-    public Controller(View view){
+    GameWindow gameWindow;
+
+    public Controller(View view,GameWindow gameWindow){
+        this.gameWindow = gameWindow;
         this.view = view;
     }
 
@@ -30,11 +33,15 @@ public class Controller implements MouseListener, KeyListener, MouseMotionListen
 
     @Override
     public void mouseDragged(MouseEvent e) {
-//        board.reactToMouseDragged(e);
+        gameWindow.currX = e.getX() - 24;
+        gameWindow.currY = e.getY() - 24;
+        view.repaint();
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        SquareDto sq = (SquareDto) view.getComponentAt(new Point(e.getX(), e.getY()));
+        gameWindow.currPiece = sq.getPiece();
     }
     @Override
     public void mouseEntered(MouseEvent e) {
