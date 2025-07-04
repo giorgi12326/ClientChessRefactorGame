@@ -10,6 +10,10 @@ import java.awt.event.ActionListener;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.InvalidPropertiesFormatException;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -133,7 +137,7 @@ public class StartMenu implements Runnable {
                 int hh = Integer.parseInt((String) hours.getSelectedItem());
                 int mm = Integer.parseInt((String) minutes.getSelectedItem());
                 int ss = Integer.parseInt((String) seconds.getSelectedItem());
-                gameWindow = new GameWindow(bn, wn, hh, mm, ss, null);
+                gameWindow = new GameWindow(bn, wn, hh, mm, ss,null);
 
                 new Thread(() -> {
                     try (Socket sock = new Socket("localhost", 8080);
@@ -168,11 +172,6 @@ public class StartMenu implements Runnable {
         final JButton pgnParser = new JButton("pgnParser");
         pgnParser.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String bn = blackInput.getText();
-                String wn = whiteInput.getText();
-                int hh = Integer.parseInt((String) hours.getSelectedItem());
-                int mm = Integer.parseInt((String) minutes.getSelectedItem());
-                int ss = Integer.parseInt((String) seconds.getSelectedItem());
 
                 new PgnField().run();
                 startWindow.dispose();

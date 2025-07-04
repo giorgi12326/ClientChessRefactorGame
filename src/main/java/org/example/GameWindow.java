@@ -5,6 +5,7 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -26,8 +27,11 @@ public class GameWindow {
     public int currX;
     public int currY;
 
+    List<PGNParser.PGNMove> PGNList;
+
     public GameWindow(String blackName, String whiteName, int hh,
-            int mm, int ss, String PGN) {
+            int mm, int ss, List<PGNParser.PGNMove> PGNList) {
+        this.PGNList = PGNList;
         
         blackClock = new Clock(hh, ss, mm);
         whiteClock = new Clock(hh, ss, mm);
@@ -143,7 +147,7 @@ public class GameWindow {
                                 JOptionPane.YES_NO_OPTION);
 
                         if (n == JOptionPane.YES_OPTION) {
-                            new GameWindow(bn, wn, hh, mm, ss,null);
+                            new GameWindow(bn, wn, hh, mm, ss, null);
                             gameWindow.dispose();
                         } else gameWindow.dispose();
                     }

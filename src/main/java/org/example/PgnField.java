@@ -1,8 +1,19 @@
 package org.example;
 
 
+import org.example.dtos.Message;
+import org.example.dtos.SquareDto;
+
 import java.awt.*;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.InvalidPropertiesFormatException;
+import java.util.List;
+import java.util.NoSuchElementException;
 import javax.swing.*;
+
 
 public class PgnField implements Runnable {
     public void run() {
@@ -50,7 +61,51 @@ public class PgnField implements Runnable {
 
         loadButton.addActionListener(e -> {
             String pgn = pgnTextArea.getText();
-            new GameWindow("bn", "wn", 0,0,0,pgn);
+
+            boolean shouldTryToCheckParsed = true;
+            List<PGNParser.PGNMove> moveList;
+            try {
+                moveList = PGNParser.parseInList(PGNParser.parsePGN(pgn).get(0));
+                System.out.println(moveList);
+                GameWindow gameWindow = new GameWindow("bn", "wn", 0,0,0, moveList);
+
+                new Thread(() -> {
+                    try (Socket sock = new Socket("localhost", 8080);
+                         ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+                         ObjectInputStream ois = new ObjectInputStream(sock.getInputStream())) {
+
+                        Message msg = (new Message("pgn", pgn));
+                        oos.writeObject(msg);
+                        oos.flush();
+
+                        Object reply = ois.readObject();
+                        System.out.println(reply);
+                        SwingUtilities.invokeLater(() -> {
+                            if((Boolean) reply){
+                                Piece piece = gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].getPiece();
+                                gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].setPiece(null);
+                                gameWindow.view.board[gameWindow.to.getX()][gameWindow.to.getY()].setPiece(piece);
+                            }
+                            gameWindow.view.repaint();
+                        });
+
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }).start();
+            }
+            catch(NoSuchElementException ex){
+                moveList = new ArrayList<>();
+                System.err.println("please enter valid pgn format");
+                shouldTryToCheckParsed = false;
+
+            } catch (InvalidPropertiesFormatException ex) {
+                shouldTryToCheckParsed = false;
+                System.err.println("please enter valid pgn format");
+
+            }
+            new GameWindow("bn", "wn", 0, 0, 0, null);
+
 
             startWindow.dispose();
         });
@@ -60,10 +115,10 @@ public class PgnField implements Runnable {
 
         loadButton1.addActionListener(e -> {
             String pgn = pgnTextArea.getText();
-
-//            new BoardContext(pgn);
+            new GameWindow("bn", "wn", 0,0,0,null);
 
             startWindow.dispose();
+
         });
 
         startWindow.setVisible(true);

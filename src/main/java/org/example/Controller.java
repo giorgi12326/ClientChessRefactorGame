@@ -10,6 +10,7 @@ import java.awt.event.*;
 public class Controller implements MouseListener, KeyListener, MouseMotionListener {
     View view;
     GameWindow gameWindow;
+    boolean pgn = false;
 
     public Controller(View view,GameWindow gameWindow){
         this.gameWindow = gameWindow;
@@ -18,6 +19,10 @@ public class Controller implements MouseListener, KeyListener, MouseMotionListen
 
     @Override
     public void mousePressed(MouseEvent e) {
+        if(pgn){
+
+        }
+
         Square square = (Square) view.getComponentAt(new Point(e.getX(), e.getY()));
         gameWindow.from = square;
 //
