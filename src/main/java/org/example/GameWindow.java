@@ -15,12 +15,14 @@ public class GameWindow {
     
     public Clock blackClock;
     public Clock whiteClock;
-    
+    public Square from;
+    public Square to;
+
     private Timer timer;
     boolean turn = false;
     View view;
 
-    public char currPiece;
+    public Piece currPiece;
     public int currX;
     public int currY;
 

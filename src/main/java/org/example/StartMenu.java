@@ -1,7 +1,6 @@
 package org.example;
 
 import org.example.dtos.Message;
-import org.example.dtos.SquareDto;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -11,7 +10,6 @@ import java.awt.event.ActionListener;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -144,8 +142,13 @@ public class StartMenu implements Runnable {
 
                         while (true) {
                             Object reply = ois.readObject();
+                            System.out.println(reply);
                             SwingUtilities.invokeLater(() -> {
-                                gameWindow.view.board = (SquareDto[][]) reply;
+                                if((Boolean) reply){
+                                    Piece piece = gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].getPiece();
+                                    gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].setPiece(null);
+                                    gameWindow.view.board[gameWindow.to.getX()][gameWindow.to.getY()].setPiece(piece);
+                                }
                                 gameWindow.view.repaint();
                             });
 

@@ -1,17 +1,15 @@
 package org.example;
 
-import org.example.dtos.SquareDto;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 
 public class View extends JPanel {
     private final GameWindow gameWindow;
-    SquareDto[][] board = new SquareDto[8][8];
+    Square[][] board = new Square[8][8];
+    public boolean turn = true;
     public Controller controller;
 
     private static final String RESOURCES_WBISHOP_PNG = "/wbishop.png";
@@ -43,11 +41,7 @@ public class View extends JPanel {
         this.setSize(new Dimension(400, 400));
         setLayout(new GridLayout(8, 8, 0, 0));
 
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                board[i][j] = new SquareDto(i,j,'P',2);
-            }
-        }
+        initBoard();
         this.add(board[0][0]);
 
         controller = new Controller(this,gameWindow);
@@ -58,21 +52,48 @@ public class View extends JPanel {
         setFocusable(true);
         requestFocusInWindow();
 
-
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
-                int xMod = x % 2;
-                int yMod = y % 2;
+                this.add(board[x][y]);
+            }
+        }
+    }
 
-                if ((xMod == 0 && yMod == 0) || (xMod == 1 && yMod == 1)) {
-                    this.add(board[x][y]);
-                } else {
-                    this.add(board[x][y]);
-                }
+    private void initBoard() {
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                board[x][y] = new Square(x, y);
             }
         }
 
+        for (int x = 0; x < 8; x++) {
+            board[1][x].setPiece(new Piece(0, RESOURCES_BPAWN_PNG));
+            board[6][x].setPiece(new Piece(1, RESOURCES_WPAWN_PNG));
+        }
+
+        board[7][3].setPiece(new Piece(0, RESOURCES_WQUEEN_PNG));
+        board[0][3].setPiece(new Piece(1, RESOURCES_BQUEEN_PNG));
+
+        board[0][4].setPiece(new Piece(0, RESOURCES_BKING_PNG));
+        board[7][4].setPiece(new Piece(1, RESOURCES_WKING_PNG));
+
+        board[0][0].setPiece(new Piece(0, RESOURCES_BROOK_PNG));
+        board[0][7].setPiece(new Piece(0, RESOURCES_BROOK_PNG));
+        board[7][0].setPiece(new Piece(1, RESOURCES_WROOK_PNG));
+        board[7][7].setPiece(new Piece(1, RESOURCES_WROOK_PNG));
+
+        board[0][1].setPiece(new Piece(0, RESOURCES_BKNIGHT_PNG));
+        board[0][6].setPiece(new Piece(0, RESOURCES_BKNIGHT_PNG));
+        board[7][1].setPiece(new Piece(1, RESOURCES_WKNIGHT_PNG));
+        board[7][6].setPiece(new Piece(1, RESOURCES_WKNIGHT_PNG));
+
+        board[0][2].setPiece(new Piece(0, RESOURCES_BBISHOP_PNG));
+        board[0][5].setPiece(new Piece(0, RESOURCES_BBISHOP_PNG));
+        board[7][2].setPiece(new Piece(1, RESOURCES_WBISHOP_PNG));
+        board[7][5].setPiece(new Piece(1, RESOURCES_WBISHOP_PNG));
+
     }
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -81,7 +102,6 @@ public class View extends JPanel {
 
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
-
                 if ((y+x)%2 == 1) {
                     g.setColor(new Color(221,192,127));
                 } else {
@@ -93,29 +113,17 @@ public class View extends JPanel {
 
                 g.fillRect(px, py, tileSize, tileSize);
 
-                if(board[y][x] != null) {
-                char piece = board[y][x].getPiece();
-
-                    Image img = null;
-                    try {
-                        String pieceImage = "asd";
-                        pieceImage = getPieceImage(y, x, piece, pieceImage);
-
-                        img = ImageIO.read(getClass().getResource(pieceImage));
-                    } catch (IOException e) {
-                        System.out.println("NO IMAGE FOUND");
-                        throw new RuntimeException(e);
-                    }
+                Piece curr = board[y][x].getPiece();
+                if(curr != null && gameWindow.currPiece != curr) {
+                    Image img = curr.getImg();
                     g.drawImage(img, px, py, tileSize, tileSize, null);
                 }
             }
         }
 
-        if (gameWindow.currPiece != '\u0000') {
-            char curr = gameWindow.currPiece;
-
-
-            g.drawImage(img, gameWindow.currX, gameWindow.currY, tileSize, tileSize, null);
+        if (gameWindow.currPiece != null) {
+            Piece curr = gameWindow.currPiece;
+            g.drawImage(curr.img, gameWindow.currX, gameWindow.currY, tileSize, tileSize, null);
 
         }
 
@@ -123,7 +131,7 @@ public class View extends JPanel {
     }
 
     private String getPieceImage(int y, int x, char piece, String pieceImage) {
-        if(board[y][x].getPieceColor()==0) {
+        if(board[y][x].getPiece().getColor()==0) {
             if (piece == 'P')
                 pieceImage = RESOURCES_BPAWN_PNG;
             else if (piece == 'B')
