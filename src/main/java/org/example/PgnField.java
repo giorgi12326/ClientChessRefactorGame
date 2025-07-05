@@ -2,6 +2,7 @@ package org.example;
 
 
 import org.example.dtos.Message;
+import org.example.dtos.PGNMove;
 import org.example.dtos.SquareDto;
 
 import java.awt.*;
@@ -14,8 +15,12 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import javax.swing.*;
 
+import static org.example.Main.sendQueue;
+
 
 public class PgnField implements Runnable {
+    private PGNParser pgnParser = new PGNParser();
+
     public void run() {
         final JFrame startWindow = new JFrame("Chess");
         startWindow.setLocation(300, 100);
@@ -63,32 +68,40 @@ public class PgnField implements Runnable {
             String pgn = pgnTextArea.getText();
 
             boolean shouldTryToCheckParsed = true;
-            List<PGNParser.PGNMove> moveList;
+            List<PGNMove> moveList;
             try {
-                moveList = PGNParser.parseInList(PGNParser.parsePGN(pgn).get(0));
+                moveList = pgnParser.parseInList(pgnParser.parsePGN(pgn).get(0));
                 System.out.println(moveList);
+
                 GameWindow gameWindow = new GameWindow("bn", "wn", 0,0,0, moveList);
+                gameWindow.view.controller.pgn = true;
+
 
                 new Thread(() -> {
                     try (Socket sock = new Socket("localhost", 8080);
                          ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
                          ObjectInputStream ois = new ObjectInputStream(sock.getInputStream())) {
+                        System.out.println("askdjashkdjas");
+                        while (true) {
+                            Message msg = sendQueue.take();
+                            oos.writeObject(msg);
+                            oos.flush();
 
-                        Message msg = (new Message("pgn", pgn));
-                        oos.writeObject(msg);
-                        oos.flush();
+                            SquareDto[] reply = (SquareDto[]) ois.readObject();
+                            System.out.println(reply[0].getX());
+                            System.out.println(reply[0].getY());
+                            System.out.println(reply[1].getX());
+                            System.out.println(reply[1].getY());
+                            SwingUtilities.invokeLater(() -> {
 
-                        Object reply = ois.readObject();
-                        System.out.println(reply);
-                        SwingUtilities.invokeLater(() -> {
-                            if((Boolean) reply){
-                                Piece piece = gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].getPiece();
-                                gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].setPiece(null);
-                                gameWindow.view.board[gameWindow.to.getX()][gameWindow.to.getY()].setPiece(piece);
-                            }
-                            gameWindow.view.repaint();
-                        });
+                                Piece piece = gameWindow.view.board[reply[0].getX()][reply[0].getY()].getPiece();
+                                    gameWindow.view.board[reply[0].getX()][reply[0].getY()].setPiece(null);
+                                    gameWindow.view.board[reply[1].getX()][reply[1].getY()].setPiece(piece);
 
+                                gameWindow.view.repaint();
+                            });
+
+                        }
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -104,8 +117,6 @@ public class PgnField implements Runnable {
                 System.err.println("please enter valid pgn format");
 
             }
-            new GameWindow("bn", "wn", 0, 0, 0, null);
-
 
             startWindow.dispose();
         });

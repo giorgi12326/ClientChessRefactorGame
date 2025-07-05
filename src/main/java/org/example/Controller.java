@@ -19,8 +19,8 @@ public class Controller implements MouseListener, KeyListener, MouseMotionListen
 
     @Override
     public void mousePressed(MouseEvent e) {
-        if(pgn){
-
+        if(pgn && !gameWindow.PGNList.isEmpty()){
+            Main.sendQueue.offer(new Message("pgn", gameWindow.PGNList.remove(0)));
         }
 
         Square square = (Square) view.getComponentAt(new Point(e.getX(), e.getY()));

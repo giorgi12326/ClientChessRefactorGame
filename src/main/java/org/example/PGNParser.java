@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.dtos.PGNMove;
+
 import java.util.ArrayList;
 import java.util.InvalidPropertiesFormatException;
 import java.util.List;
@@ -11,31 +13,13 @@ public class PGNParser {
     public static String whitePlayer;
     public static String blackPlayer;
 
-    public static class PGNMove {
-        public int[] to;
-        public boolean isWhite;
-        public String disambiguation;
-        public char piece;
-        public boolean isCapture = false;
-        public boolean isCastleKingSide = false;
-        public boolean isCastleQueenSide = false;
-        public boolean isPromotion = false;
-        public char promoteTo;
-
-        public String toString() {
-            if (isCastleKingSide) return "O-O";
-            if (isCastleQueenSide) return "O-O-O";
-            return piece + ": "  + " -> " + to + (isCapture ? " (x)" : "");
-        }
-    }
-
     public static int[] algebraicToCoords(String pos) {
         int file = pos.charAt(0) - 'a';
         int rank = 8 - Character.getNumericValue(pos.charAt(1));
         return new int[]{rank, file};
     }
 
-    public static List<String> parsePGN(String pgn) {
+    public List<String> parsePGN(String pgn) {
         List<String> games = new ArrayList<>();
         String[] gameArray = pgn.split("(?=\\[Event )");
 
@@ -66,7 +50,7 @@ public class PGNParser {
         return result;
     }
 
-    public static List<PGNMove> parseInList(String pgn) throws InvalidPropertiesFormatException {
+    public List<PGNMove> parseInList(String pgn) throws InvalidPropertiesFormatException {
         String[] tokens = pgn.split(" ");
         boolean isWhite = false;
         List<PGNMove> moves = new ArrayList<>();
@@ -88,14 +72,14 @@ public class PGNParser {
 
             Pattern movePattern = Pattern.compile("([KQRBN])?([a-h]?[1-8]?)x?([a-h][1-8])(=([QRBN]))?([+#]?)");
             Matcher matcher = movePattern.matcher(token);
-
             if (matcher.matches()) {
                 String piece = matcher.group(1);
                 String disambiguation = matcher.group(2);
                 String destination = matcher.group(3);
                 String promotion = matcher.group(5);
 
-                move.piece = piece != null ? piece.charAt(0) : '-';
+                move.piece = piece != null ? piece.charAt(0) : 'P';
+                System.out.println(move.piece);
                 move.to = algebraicToCoords(destination);
                 move.isCapture = token.contains("x");
                 move.isPromotion = promotion != null;

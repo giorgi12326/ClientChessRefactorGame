@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.dtos.PGNMove;
+
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
@@ -27,10 +29,10 @@ public class GameWindow {
     public int currX;
     public int currY;
 
-    List<PGNParser.PGNMove> PGNList;
+    List<PGNMove> PGNList;
 
     public GameWindow(String blackName, String whiteName, int hh,
-            int mm, int ss, List<PGNParser.PGNMove> PGNList) {
+            int mm, int ss, List<PGNMove> PGNList) {
         this.PGNList = PGNList;
         
         blackClock = new Clock(hh, ss, mm);

@@ -141,12 +141,12 @@ public class StartMenu implements Runnable {
 
                 new Thread(() -> {
                     try (Socket sock = new Socket("localhost", 8080);
-                         ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
-                         ObjectInputStream ois = new ObjectInputStream(sock.getInputStream())) {
+                        ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+                        ObjectInputStream ois = new ObjectInputStream(sock.getInputStream())) {
 
                         while (true) {
                             Object reply = ois.readObject();
-                            System.out.println(reply);
+
                             SwingUtilities.invokeLater(() -> {
                                 if((Boolean) reply){
                                     Piece piece = gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].getPiece();
