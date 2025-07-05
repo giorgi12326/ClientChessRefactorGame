@@ -1,16 +1,13 @@
 package org.example;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
-
+import javax.imageio.ImageIO;
 
 public class View extends JPanel {
     private final GameWindow gameWindow;
-    Square[][] board = new Square[8][8];
-    public boolean turn = true;
-    public Controller controller;
+    public Square[][] board = new Square[8][8];
 
     private static final String RESOURCES_WBISHOP_PNG = "/wbishop.png";
     private static final String RESOURCES_BBISHOP_PNG = "/bbishop.png";
@@ -24,16 +21,8 @@ public class View extends JPanel {
     public static final String RESOURCES_WQUEEN_PNG = "/wqueen.png";
     static final String RESOURCES_WPAWN_PNG = "/wpawn.png";
     private static final String RESOURCES_BPAWN_PNG = "/bpawn.png";
-    Image img;
 
-    public View(GameWindow gameWindow){
-        img= null;
-        try {
-            img = ImageIO.read(getClass().getResource(RESOURCES_BPAWN_PNG));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
+    public View(GameWindow gameWindow) {
         this.gameWindow = gameWindow;
         this.setPreferredSize(new Dimension(400, 400));
         this.setMaximumSize(new Dimension(400, 400));
@@ -44,11 +33,9 @@ public class View extends JPanel {
         initBoard();
         this.add(board[0][0]);
 
-        controller = new Controller(this,gameWindow);
-
-        addMouseMotionListener(controller);
-        addMouseListener(controller);
-        addKeyListener(controller);
+        addMouseMotionListener(gameWindow.controller);
+        addMouseListener(gameWindow.controller);
+        addKeyListener(gameWindow.controller);
         setFocusable(true);
         requestFocusInWindow();
 
@@ -91,7 +78,6 @@ public class View extends JPanel {
         board[0][5].setPiece(new Piece(0, RESOURCES_BBISHOP_PNG));
         board[7][2].setPiece(new Piece(1, RESOURCES_WBISHOP_PNG));
         board[7][5].setPiece(new Piece(1, RESOURCES_WBISHOP_PNG));
-
     }
 
     @Override
@@ -102,63 +88,40 @@ public class View extends JPanel {
 
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
-                if ((y+x)%2 == 1) {
-                    g.setColor(new Color(221,192,127));
-                } else {
-                    g.setColor(new Color(101,67,33));
-                }
+                if ((y + x) % 2 == 1) g.setColor(new Color(221, 192, 127));
+                else g.setColor(new Color(101, 67, 33));
 
                 int px = x * tileSize;
                 int py = y * tileSize;
-
                 g.fillRect(px, py, tileSize, tileSize);
 
                 Piece curr = board[y][x].getPiece();
-                if(curr != null && gameWindow.currPiece != curr) {
-                    Image img = curr.getImg();
-                    g.drawImage(img, px, py, tileSize, tileSize, null);
+                if (curr != null && gameWindow.currPiece != curr) {
+                    g.drawImage(curr.img, px, py, tileSize, tileSize, null);
                 }
             }
         }
 
         if (gameWindow.currPiece != null) {
-            Piece curr = gameWindow.currPiece;
-            g.drawImage(curr.img, gameWindow.currX, gameWindow.currY, tileSize, tileSize, null);
-
+            g.drawImage(
+                    gameWindow.currPiece.img,
+                    gameWindow.currX,
+                    gameWindow.currY,
+                    tileSize,
+                    tileSize,
+                    null
+            );
         }
-
-
     }
 
-    private String getPieceImage(int y, int x, char piece, String pieceImage) {
-        if(board[y][x].getPiece().getColor()==0) {
-            if (piece == 'P')
-                pieceImage = RESOURCES_BPAWN_PNG;
-            else if (piece == 'B')
-                pieceImage = RESOURCES_BBISHOP_PNG;
-            else if (piece == 'Q')
-                pieceImage = RESOURCES_BQUEEN_PNG;
-            else if (piece == 'K')
-                pieceImage = RESOURCES_BKING_PNG;
-            else if (piece == 'N')
-                pieceImage = RESOURCES_BKNIGHT_PNG;
-            else if (piece == 'R')
-                pieceImage = RESOURCES_BROOK_PNG;
-        }
-        else{
-            if (piece == 'P')
-                pieceImage = RESOURCES_WPAWN_PNG;
-            else if (piece == 'B')
-                pieceImage = RESOURCES_WBISHOP_PNG;
-            else if (piece == 'Q')
-                pieceImage = RESOURCES_WQUEEN_PNG;
-            else if (piece == 'K')
-                pieceImage = RESOURCES_WKING_PNG;
-            else if (piece == 'N')
-                pieceImage = RESOURCES_WKNIGHT_PNG;
-            else if (piece == 'R')
-                pieceImage = RESOURCES_WROOK_PNG;
-        }
-        return pieceImage;
+    // =====================================================================
+    // NEW METHOD: apply the last server move onto the board array
+    public void applyLastMove() {
+        Square f = gameWindow.from;
+        Square t = gameWindow.to;
+        if (f == null || t == null) return;
+        Piece p = f.getPiece();
+        f.setPiece(null);
+        t.setPiece(p);
     }
 }

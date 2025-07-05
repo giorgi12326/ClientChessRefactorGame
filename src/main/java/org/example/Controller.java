@@ -1,41 +1,38 @@
 package org.example;
 
-
 import org.example.dtos.Message;
 import org.example.dtos.SquareDto;
 
 import java.awt.*;
 import java.awt.event.*;
 
-public class Controller implements MouseListener, KeyListener, MouseMotionListener {
+public class Controller implements MouseListener, MouseMotionListener, KeyListener {
     View view;
     GameWindow gameWindow;
 
-    public Controller(View view,GameWindow gameWindow){
-        this.gameWindow = gameWindow;
+    public Controller(View view, GameWindow gameWindow) {
         this.view = view;
+        this.gameWindow = gameWindow;
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
         Square square = (Square) view.getComponentAt(new Point(e.getX(), e.getY()));
         gameWindow.from = square;
-//
         gameWindow.currPiece = square.getPiece();
-//        SquareDto squareDto = (SquareDto) view.getComponentAt(new Point(e.getX(), e.getY()));
-//        Main.sendQueue.offer(new Message("mousePress", squareDto));
+        Main.sendQueue.offer(new Message("mousePress", new SquareDto[]{
+                new SquareDto(square.getX(), square.getY()), null
+        }));
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
         Square square = (Square) view.getComponentAt(new Point(e.getX(), e.getY()));
         gameWindow.to = square;
+        Main.sendQueue.offer(new Message("mouseRelease", new SquareDto[]{
+                null, new SquareDto(square.getX(), square.getY())
+        }));
         gameWindow.currPiece = null;
-        Main.sendQueue.offer(new Message("mouseRelease",
-                new SquareDto[]{
-                        new SquareDto(gameWindow.from.x, gameWindow.from.y),
-                        new SquareDto(square.x,square.y),
-                }));
     }
 
     @Override
@@ -45,22 +42,10 @@ public class Controller implements MouseListener, KeyListener, MouseMotionListen
         view.repaint();
     }
 
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        Square sq = (Square) view.getComponentAt(new Point(e.getX(), e.getY()));
-        gameWindow.currPiece = sq.getPiece();
-    }
-    @Override
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-    }
+    @Override public void mouseClicked(MouseEvent e) {}
+    @Override public void mouseEntered(MouseEvent e) {}
+    @Override public void mouseExited(MouseEvent e) {}
+    @Override public void mouseMoved(MouseEvent e) {}
 
     @Override
     public void keyTyped(KeyEvent e) {
@@ -69,7 +54,6 @@ public class Controller implements MouseListener, KeyListener, MouseMotionListen
 
     @Override
     public void keyPressed(KeyEvent e) {
-//        board.reactToKeyPress(e);
 
     }
 
