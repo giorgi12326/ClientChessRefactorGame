@@ -145,6 +145,11 @@ public class StartMenu implements Runnable {
                         ObjectInputStream ois = new ObjectInputStream(sock.getInputStream())) {
 
                         while (true) {
+
+                            Message msg = sendQueue.take();
+                            oos.writeObject(msg);
+                            oos.flush();
+
                             Object reply = ois.readObject();
 
                             SwingUtilities.invokeLater(() -> {
@@ -155,10 +160,6 @@ public class StartMenu implements Runnable {
                                 }
                                 gameWindow.view.repaint();
                             });
-
-                            Message msg = sendQueue.take();
-                            oos.writeObject(msg);
-                            oos.flush();
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();

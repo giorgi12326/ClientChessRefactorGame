@@ -81,7 +81,6 @@ public class PgnField implements Runnable {
                     try (Socket sock = new Socket("localhost", 8080);
                          ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
                          ObjectInputStream ois = new ObjectInputStream(sock.getInputStream())) {
-                        System.out.println("askdjashkdjas");
                         while (true) {
                             Message msg = sendQueue.take();
                             oos.writeObject(msg);
