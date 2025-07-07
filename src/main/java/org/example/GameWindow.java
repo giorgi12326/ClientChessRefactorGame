@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.dtos.Message;
 import org.example.dtos.PGNMove;
 
 import java.awt.BorderLayout;
@@ -7,7 +8,9 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.function.BinaryOperator;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -31,9 +34,15 @@ public class GameWindow {
 
     List<PGNMove> PGNList;
 
+    String blackName;
+    String whiteName;
+
+
     public GameWindow(String blackName, String whiteName, int hh,
             int mm, int ss, List<PGNMove> PGNList) {
         this.PGNList = PGNList;
+        this.blackName = blackName;
+        this.whiteName = whiteName;
         
         blackClock = new Clock(hh, ss, mm);
         whiteClock = new Clock(hh, ss, mm);
@@ -218,50 +227,54 @@ public class GameWindow {
                         "How to play",
                         JOptionPane.PLAIN_MESSAGE);
             }
-          });
+        });
+        JButton showPGN = new JButton("Show PGN");
+        showPGN.addActionListener(e -> {
+            String pgn = getFullPGN();
+
+            SwingUtilities.invokeLater(() -> {
+                JTextArea area = new JTextArea(pgn, 20, 40);
+                area.setLineWrap(true);
+                area.setWrapStyleWord(true);
+                area.setEditable(false);
+                JOptionPane.showMessageDialog(
+                        gameWindow,
+                        new JScrollPane(area),
+                        "Game PGN",
+                        JOptionPane.PLAIN_MESSAGE
+                );
+            });
+        });
         
         buttons.add(instr);
         buttons.add(nGame);
         buttons.add(quit);
-        
+        buttons.add(showPGN);
+
         buttons.setPreferredSize(buttons.getMinimumSize());
         
         return buttons;
     }
-    public void incorrectPgnMessage(String message){
-        JOptionPane.showMessageDialog(gameWindow,
-                message,
-                "Warning!",
-                JOptionPane.PLAIN_MESSAGE);
-    }
-    
-    public void checkmateOccurred (int c) {
-        if (c == 0) {
-            if (timer != null) timer.stop();
-            int n = JOptionPane.showConfirmDialog(
-                    gameWindow,
-                    "White wins by checkmate! Set up a new game? \n" +
-                    "Choosing \"No\" lets you look at the final situation.",
-                    "White wins!",
-                    JOptionPane.YES_NO_OPTION);
-            
-            if (n == JOptionPane.YES_OPTION) {
-                SwingUtilities.invokeLater(new StartMenu());
-                gameWindow.dispose();
-            }
-        } else {
-            if (timer != null) timer.stop();
-            int n = JOptionPane.showConfirmDialog(
-                    gameWindow,
-                    "Black wins by checkmate! Set up a new game? \n" +
-                    "Choosing \"No\" lets you look at the final situation.",
-                    "Black wins!",
-                    JOptionPane.YES_NO_OPTION);
-            
-            if (n == JOptionPane.YES_OPTION) {
-                SwingUtilities.invokeLater(new StartMenu());
-                gameWindow.dispose();
-            }
+    public String getPGNMovetext() {
+        StringBuilder sb = new StringBuilder();
+        int num = 1;
+        for (int i = 0; i < StartMenu.pgnList.size(); i += 2) {
+            sb.append(num++).append(". ").append(StartMenu.pgnList.get(i));
+            if (i + 1 < StartMenu.pgnList.size()) sb.append(" ").append(StartMenu.pgnList.get(i + 1));
+            if (i + 2 < StartMenu.pgnList.size()) sb.append(" ");
         }
+        return sb.toString().trim();
+    }
+
+    public String getFullPGN() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[Event \"?\"]\n")
+                .append("[Site \"?\"]\n")
+                .append("[Date \"").append(LocalDate.now()).append("\"]\n")
+                .append("[Round \"?\"]\n")
+                .append("[White \"").append(whiteName != null ? whiteName : "?").append("\"]\n")
+                .append("[Black \"").append(blackName != null ? blackName : "?").append("\"]\n")
+                .append(getPGNMovetext()).append(" ");
+        return sb.toString();
     }
 }

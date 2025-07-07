@@ -22,6 +22,7 @@ import static org.example.Main.sendQueue;
 
 public class StartMenu implements Runnable {
     public GameWindow gameWindow;
+    public static List<String> pgnList = new ArrayList<>();
 
     public void run() {
         final JFrame startWindow = new JFrame("Chess");
@@ -152,14 +153,27 @@ public class StartMenu implements Runnable {
 
                             Object reply = ois.readObject();
 
-                            SwingUtilities.invokeLater(() -> {
-                                if((Boolean) reply){
+                            if(reply instanceof Message m){
+                                SwingUtilities.invokeLater(() -> {
+                                    pgnList.add((String)m.getPayload());
                                     Piece piece = gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].getPiece();
                                     gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].setPiece(null);
                                     gameWindow.view.board[gameWindow.to.getX()][gameWindow.to.getY()].setPiece(piece);
-                                }
-                                gameWindow.view.repaint();
-                            });
+                                    gameWindow.view.repaint();
+                                });
+                            }
+                            else{
+                                SwingUtilities.invokeLater(() -> {
+                                    if((Boolean) reply){
+                                        Piece piece = gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].getPiece();
+                                        gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].setPiece(null);
+                                        gameWindow.view.board[gameWindow.to.getX()][gameWindow.to.getY()].setPiece(piece);
+                                    }
+                                    gameWindow.view.repaint();
+                                });
+                            }
+
+
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();
