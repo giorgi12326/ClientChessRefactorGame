@@ -3,9 +3,7 @@ package org.example;
 import org.example.dtos.Message;
 import org.example.dtos.PGNMove;
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
@@ -74,8 +72,9 @@ public class GameWindow {
         gameWindow.add(gameData, BorderLayout.NORTH);
 
 
-        gameWindow.add(view, BorderLayout.CENTER);
-        
+        JPanel center = new JPanel(new GridBagLayout());
+        center.add(view);
+        gameWindow.add(center, BorderLayout.CENTER);
         gameWindow.add(buttons(), BorderLayout.SOUTH);
         
         gameWindow.setMinimumSize(gameWindow.getPreferredSize());
@@ -88,7 +87,7 @@ public class GameWindow {
     }
     
 // Helper function to create data panel
-    
+
     private JPanel gameDataPanel(final String bn, final String wn, 
             final int hh, final int mm, final int ss) {
         
@@ -234,7 +233,11 @@ public class GameWindow {
         JButton showPGN = new JButton("Show PGN");
         showPGN.addActionListener(e -> {
             String pgn = getFullPGN();
-
+            try {
+                Main.sendQueue.put(new Message("savePGN", pgn));
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
             SwingUtilities.invokeLater(() -> {
                 JTextArea area = new JTextArea(pgn, 20, 40);
                 area.setLineWrap(true);
@@ -280,4 +283,5 @@ public class GameWindow {
                 .append(getPGNMovetext()).append(" ");
         return sb.toString();
     }
+
 }
