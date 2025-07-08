@@ -19,28 +19,32 @@ public class Controller implements MouseListener, KeyListener, MouseMotionListen
 
     @Override
     public void mousePressed(MouseEvent e) {
-        if(pgn && !gameWindow.PGNList.isEmpty()){
+        if(pgn){
             Main.sendQueue.offer(new Message("pgn", gameWindow.PGNList.remove(0)));
         }
+        else {
 
-        Square square = (Square) view.getComponentAt(new Point(e.getX(), e.getY()));
-        gameWindow.from = square;
+            Square square = (Square) view.getComponentAt(new Point(e.getX(), e.getY()));
+            gameWindow.from = square;
 //
-        gameWindow.currPiece = square.getPiece();
+            gameWindow.currPiece = square.getPiece();
+        }
 //        SquareDto squareDto = (SquareDto) view.getComponentAt(new Point(e.getX(), e.getY()));
 //        Main.sendQueue.offer(new Message("mousePress", squareDto));
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        Square square = (Square) view.getComponentAt(new Point(e.getX(), e.getY()));
-        gameWindow.to = square;
-        gameWindow.currPiece = null;
-        Main.sendQueue.offer(new Message("mouseRelease",
-                new SquareDto[]{
-                        new SquareDto(gameWindow.from.x, gameWindow.from.y),
-                        new SquareDto(square.x,square.y),
-                }));
+        if(!pgn) {
+            Square square = (Square) view.getComponentAt(new Point(e.getX(), e.getY()));
+            gameWindow.to = square;
+            gameWindow.currPiece = null;
+            Main.sendQueue.offer(new Message("mouseRelease",
+                    new SquareDto[]{
+                            new SquareDto(gameWindow.from.x, gameWindow.from.y),
+                            new SquareDto(square.x, square.y),
+                    }));
+        }
     }
 
     @Override
@@ -52,8 +56,6 @@ public class Controller implements MouseListener, KeyListener, MouseMotionListen
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        Square sq = (Square) view.getComponentAt(new Point(e.getX(), e.getY()));
-        gameWindow.currPiece = sq.getPiece();
     }
     @Override
     public void mouseEntered(MouseEvent e) {

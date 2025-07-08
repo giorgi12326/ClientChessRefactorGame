@@ -37,6 +37,9 @@ public class GameWindow {
     String blackName;
     String whiteName;
 
+    public boolean whiteTurn = true;
+
+
 
     public GameWindow(String blackName, String whiteName, int hh,
             int mm, int ss, List<PGNMove> PGNList) {

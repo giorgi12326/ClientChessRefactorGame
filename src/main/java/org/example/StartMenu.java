@@ -152,27 +152,26 @@ public class StartMenu implements Runnable {
                             oos.flush();
 
                             Object reply = ois.readObject();
-
                             if(reply instanceof Message m){
-                                SwingUtilities.invokeLater(() -> {
-                                    pgnList.add((String)m.getPayload());
-                                    Piece piece = gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].getPiece();
-                                    gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].setPiece(null);
-                                    gameWindow.view.board[gameWindow.to.getX()][gameWindow.to.getY()].setPiece(piece);
-                                    gameWindow.view.repaint();
-                                });
-                            }
-                            else{
-                                SwingUtilities.invokeLater(() -> {
-                                    if((Boolean) reply){
-                                        Piece piece = gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].getPiece();
-                                        gameWindow.view.board[gameWindow.from.getX()][gameWindow.from.getY()].setPiece(null);
-                                        gameWindow.view.board[gameWindow.to.getX()][gameWindow.to.getY()].setPiece(piece);
-                                    }
-                                    gameWindow.view.repaint();
-                                });
-                            }
+                                if(m.getPayload().equals("O-O")){
+                                    movePiece(gameWindow.view.board[gameWindow.whiteTurn?7:0][4],gameWindow.view.board[gameWindow.whiteTurn?7:0][6]);
+                                    movePiece(gameWindow.view.board[gameWindow.whiteTurn?7:0][7],gameWindow.view.board[gameWindow.whiteTurn?7:0][5]);
+                                }
+                                else if(m.getPayload().equals("O-O-O")){
+                                    movePiece(gameWindow.view.board[gameWindow.whiteTurn?7:0][4],gameWindow.view.board[gameWindow.whiteTurn?7:0][2]);
+                                    movePiece(gameWindow.view.board[gameWindow.whiteTurn?7:0][0],gameWindow.view.board[gameWindow.whiteTurn?7:0][3]);
+                                }else {
+                                    movePiece(gameWindow.from, gameWindow.to);
 
+                                }
+                                SwingUtilities.invokeLater(() -> {
+                                    gameWindow.view.repaint();
+                                });
+
+                                pgnList.add((String) m.getPayload());
+
+                                gameWindow.whiteTurn = !gameWindow.whiteTurn;
+                            }
 
                         }
                     } catch (Exception ex) {
@@ -181,6 +180,12 @@ public class StartMenu implements Runnable {
                 }).start();
 
                 startWindow.dispose();
+            }
+
+            private void movePiece(Square from, Square to) {
+                Piece piece = gameWindow.view.board[from.getX()][from.getY()].getPiece();
+                gameWindow.view.board[from.getX()][from.getY()].setPiece(null);
+                gameWindow.view.board[to.getX()][to.getY()].setPiece(piece);
             }
         });
 

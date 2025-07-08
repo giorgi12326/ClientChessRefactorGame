@@ -82,25 +82,37 @@ public class PgnField implements Runnable {
                          ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
                          ObjectInputStream ois = new ObjectInputStream(sock.getInputStream())) {
                         while (true) {
+
                             Message msg = sendQueue.take();
                             oos.writeObject(msg);
                             oos.flush();
 
-                            SquareDto[] reply = (SquareDto[]) ois.readObject();
-                            System.out.println(reply[0].getX());
-                            System.out.println(reply[0].getY());
-                            System.out.println(reply[1].getX());
-                            System.out.println(reply[1].getY());
-                            SwingUtilities.invokeLater(() -> {
+                            Object reply = ois.readObject();
 
-                                Piece piece = gameWindow.view.board[reply[0].getX()][reply[0].getY()].getPiece();
-                                    gameWindow.view.board[reply[0].getX()][reply[0].getY()].setPiece(null);
-                                    gameWindow.view.board[reply[1].getX()][reply[1].getY()].setPiece(piece);
+                            if(reply instanceof Message m) {
+                                if(m.payload instanceof String) {
+                                    if (m.getPayload().equals("O-O")) {
+                                        movePiece(gameWindow, gameWindow.view.board[gameWindow.whiteTurn ? 7 : 0][4], gameWindow.view.board[gameWindow.whiteTurn ? 7 : 0][6]);
+                                        movePiece(gameWindow, gameWindow.view.board[gameWindow.whiteTurn ? 7 : 0][7], gameWindow.view.board[gameWindow.whiteTurn ? 7 : 0][5]);
+                                    } else if (m.getPayload().equals("O-O-O")) {
+                                        movePiece(gameWindow, gameWindow.view.board[gameWindow.whiteTurn ? 7 : 0][4], gameWindow.view.board[gameWindow.whiteTurn ? 7 : 0][2]);
+                                        movePiece(gameWindow, gameWindow.view.board[gameWindow.whiteTurn ? 7 : 0][0], gameWindow.view.board[gameWindow.whiteTurn ? 7 : 0][3]);
+                                    }
+                                }
+                                else if(m.payload instanceof SquareDto[] sq){
+                                    Piece piece = gameWindow.view.board[sq[0].getY()][sq[0].getX()].getPiece();
+                                    gameWindow.view.board[sq[0].getY()][sq[0].getX()].setPiece(null);
+                                    gameWindow.view.board[sq[1].getY()][sq[1].getX()].setPiece(piece);
+                                }
+                                SwingUtilities.invokeLater(() -> {
+                                    gameWindow.view.repaint();
+                                });
+                            }
 
-                                gameWindow.view.repaint();
-                            });
 
+                            gameWindow.whiteTurn = !gameWindow.whiteTurn;
                         }
+
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -132,6 +144,12 @@ public class PgnField implements Runnable {
         });
 
         startWindow.setVisible(true);
+    }
+
+    private void movePiece(GameWindow gameWindow, Square from, Square to) {
+        Piece piece = gameWindow.view.board[from.getX()][from.getY()].getPiece();
+        gameWindow.view.board[from.getX()][from.getY()].setPiece(null);
+        gameWindow.view.board[to.getX()][to.getY()].setPiece(piece);
     }
 
 }
