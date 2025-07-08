@@ -79,7 +79,6 @@ public class PGNParser {
                 String promotion = matcher.group(5);
 
                 move.piece = piece != null ? piece.charAt(0) : 'P';
-                System.out.println(move.piece);
                 move.to = algebraicToCoords(destination);
                 move.isCapture = token.contains("x");
                 move.isPromotion = promotion != null;

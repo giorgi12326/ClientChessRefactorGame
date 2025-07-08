@@ -137,7 +137,50 @@ public class PgnField implements Runnable {
 
         loadButton1.addActionListener(e -> {
             String pgn = pgnTextArea.getText();
-            new GameWindow("bn", "wn", 0,0,0,null);
+
+            boolean shouldTryToCheckParsed = true;
+            List<PGNMove> moveList;
+            try {
+                moveList = pgnParser.parseInList(pgnParser.parsePGN(pgn).get(0));
+
+                GameWindow gameWindow = new GameWindow("bn", "wn", 0,0,0, moveList);
+                gameWindow.view.controller.pgn = true;
+
+
+                new Thread(() -> {
+                    try (Socket sock = new Socket("localhost", 8080);
+                         ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+                         ObjectInputStream ois = new ObjectInputStream(sock.getInputStream())) {
+
+                        List<String> payload = pgnParser.parsePGN(pgn);
+                        Message msg = new Message("Multiple", payload);
+                        oos.writeObject(msg);
+                        oos.flush();
+
+                        for (int i = 0; i < payload.size(); i++) {
+                            Object reply = ois.readObject();
+                            if(reply instanceof Message m){
+                                System.out.println((Boolean) m.getPayload());
+                            }
+
+                        }
+
+
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }).start();
+            }
+            catch(NoSuchElementException ex){
+                moveList = new ArrayList<>();
+                System.err.println("please enter valid pgn format");
+                shouldTryToCheckParsed = false;
+
+            } catch (InvalidPropertiesFormatException ex) {
+                shouldTryToCheckParsed = false;
+                System.err.println("please enter valid pgn format");
+
+            }
 
             startWindow.dispose();
 
